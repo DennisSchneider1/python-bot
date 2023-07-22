@@ -1,11 +1,18 @@
 import discord
 import responses
 
+chat_history = ''
+bot_name = 'SHION'
+user_name = 'USER'
+
 async def send_message(message, user_message):
     try:
-        response = responses.get_response(user_message)
+        global chat_history 
+        chat_history += user_name + ': ' + user_message + '\n' + bot_name + ': '
+        response = responses.get_response(chat_history)
         if response != 'no response':
             await message.channel.send(response)
+            chat_history += response + '\n'
 
     except Exception as e:
         print(e) 
@@ -31,7 +38,8 @@ def run_discord_bot():
         user_message = str(message.content)
         channel = str(message.channel)
         print(f'{username} said: "{user_message}" in ({channel})')
-        
-        await send_message(message, user_message)
+
+        async with message.channel.typing():
+            await send_message(message, user_message)
 
     client.run(TOKEN)

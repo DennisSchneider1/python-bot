@@ -9,17 +9,16 @@ URI = f'http://{HOST}/api/v1/chat'
 # For reverse-proxied streaming, the remote will likely host with ssl - https://
 # URI = 'https://your-uri-here.trycloudflare.com/api/v1/chat'
 
-
 def run(user_input, history):
     request = {
         'user_input': user_input,
         'max_new_tokens': 400,
         'history': history,
-        'mode': 'instruct',  # Valid options: 'chat', 'chat-instruct', 'instruct'
-        'character': 'Example',
+        'mode': 'chat',  # Valid options: 'chat', 'chat-instruct', 'instruct'
+        'character': 'Shion',
         'instruction_template': 'Vicuna-v1.1',  # Will get autodetected if unset
         # 'context_instruct': '',  # Optional
-        'your_name': 'You',
+        'your_name': 'USER',
 
         'regenerate': False,
         '_continue': False,
@@ -29,7 +28,7 @@ def run(user_input, history):
 
         # Generation params. If 'preset' is set to different than 'None', the values
         # in presets/preset-name.yaml are used instead of the individual numbers.
-        'preset': 'None',
+        'preset': 'Yara',
         'do_sample': True,
         'temperature': 0.7,
         'top_p': 0.1,
@@ -59,14 +58,15 @@ def run(user_input, history):
         'stopping_strings': []
     }
 
+    print('wait for api response ...')
     response = requests.post(URI, json=request)
 
     if response.status_code == 200:
         result = response.json()['results'][0]['history']
+        # print(response.json()['results'])
         # print(json.dumps(result, indent=4))
         # print()
         # print(result['visible'][-1][1])
-        # print('returning output to bot')
         return str(result['visible'][-1][1])
     
     return 'no response'
@@ -75,9 +75,7 @@ def run(user_input, history):
 def llm_respond(user_input):
     # Basic example
     history = {'internal': [], 'visible': []}
-
     # "Continue" example. Make sure to set '_continue' to True above
-    # arr = [user_input, 'Surely, here is']
-    # history = {'internal': [arr], 'visible': [arr]}
-    print('sending input to llm')
+    # history = {'internal': [user_input], 'visible': [user_input]}
+
     return run(user_input, history)
