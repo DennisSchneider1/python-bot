@@ -5,20 +5,21 @@ import requests
 # For local streaming, the websockets are hosted without ssl - http://
 HOST = 'localhost:5000'
 URI = f'http://{HOST}/api/v1/chat'
+CHARACTER_NAME = 'Shion'
+TIMEOUT_SECONDS = 120
 
 # For reverse-proxied streaming, the remote will likely host with ssl - https://
 # URI = 'https://your-uri-here.trycloudflare.com/api/v1/chat'
 
-def run(user_input, history):
+def run(user_name:str, user_input:str, preset:str):
     request = {
         'user_input': user_input,
-        'max_new_tokens': 400,
-        'history': history,
+        'max_new_tokens': 500,
         'mode': 'chat',  # Valid options: 'chat', 'chat-instruct', 'instruct'
-        'character': 'Shion',
+        'character': CHARACTER_NAME,
         'instruction_template': 'Vicuna-v1.1',  # Will get autodetected if unset
         # 'context_instruct': '',  # Optional
-        'your_name': 'USER',
+        'your_name': user_name,
 
         'regenerate': False,
         '_continue': False,
@@ -28,7 +29,7 @@ def run(user_input, history):
 
         # Generation params. If 'preset' is set to different than 'None', the values
         # in presets/preset-name.yaml are used instead of the individual numbers.
-        'preset': 'Yara',
+        'preset': preset,
         'do_sample': True,
         'temperature': 0.7,
         'top_p': 0.1,
@@ -59,23 +60,23 @@ def run(user_input, history):
     }
 
     print('wait for api response ...')
-    response = requests.post(URI, json=request)
+    response = requests.post(URI, json=request, timeout=TIMEOUT_SECONDS)
 
     if response.status_code == 200:
         result = response.json()['results'][0]['history']
         # print(response.json()['results'])
         # print(json.dumps(result, indent=4))
-        # print()
         # print(result['visible'][-1][1])
         return str(result['visible'][-1][1])
     
     return 'no response'
 
 
-def llm_respond(user_input):
-    # Basic example
-    history = {'internal': [], 'visible': []}
-    # "Continue" example. Make sure to set '_continue' to True above
-    # history = {'internal': [user_input], 'visible': [user_input]}
+def llm_respond_user(user_name:str, user_input:str) -> str:
+    return run(user_name, user_input + CHARACTER_NAME + ': ', 'Yara')
 
-    return run(user_input, history)
+def llm_respond_creative_user(user_name:str, user_input:str) -> str:
+    return run(user_name, user_input + CHARACTER_NAME + ': ', 'simple-1')
+
+def llm_respond_creative(user_input:str) -> str:
+    return run('USER', user_input, 'simple-1')
