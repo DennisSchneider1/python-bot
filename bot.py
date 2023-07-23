@@ -33,7 +33,7 @@ def run_discord_bot():
         print(f'{client.user} is now running!')
 
         # set bot status with llm
-        generate_status_prompt = 'I\'m Shion. I\'ve been thinking of a funny discord status and I think i\'ll set it to: '
+        generate_status_prompt = 'I\'m Shion. I\'ve been thinking of a funny discord status and I\'ll set it to: '
         status_message = responses.get_response(generate_status_prompt)
         game_status = discord.Game(status_message)
         await client.change_presence(status=discord.Status.idle, activity=game_status)
