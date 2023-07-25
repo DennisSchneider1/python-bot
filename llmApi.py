@@ -1,5 +1,4 @@
 import json
-
 import requests
 
 # For local streaming, the websockets are hosted without ssl - http://
@@ -69,14 +68,12 @@ def run(user_name:str, user_input:str, preset:str):
         # print(result['visible'][-1][1])
         return str(result['visible'][-1][1])
     
+    print('Response code is not 200, printing full response:')
+    print(json.dumps(result, indent=4))
     return 'no response'
-
-
-def llm_respond_user(user_name:str, user_input:str) -> str:
-    return run(user_name, user_input + CHARACTER_NAME + ': ', 'Yara')
 
 def llm_respond_creative_user(user_name:str, user_input:str) -> str:
     return run(user_name, user_input + CHARACTER_NAME + ': ', 'simple-1')
 
 def llm_respond_creative(user_input:str) -> str:
-    return run('USER', user_input, 'simple-1')
+    return run(CHARACTER_NAME, user_input, 'simple-1')
