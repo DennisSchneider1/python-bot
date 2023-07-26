@@ -11,24 +11,26 @@ async def send_message(message, user_message):
 
         cur_len = 0
         response_message = ''
-        response_message_chunk = ''
+        response_message_obj = None
         start_of_message_sent = False
         async for new_history in responses.get_response_for_user_input(str(message.author), chat_history):
             cur_response_message = new_history[cur_len:]
             cur_len += len(cur_response_message)
             response_message += cur_response_message
-            response_message_chunk += cur_response_message
 
-            # if not start_of_message_sent and (str(cur_response_message).endswith(['.','!']) or len(response_message_chunk) >= 100):
-            #     await message.channel.send(response_message_chunk)
-            #     response_message_chunk = ''
-            #     start_of_message_sent = True
+            if not start_of_message_sent and (str(cur_response_message).endswith('.')):
+                response_message_obj = await message.channel.send(response_message)
+                start_of_message_sent = True
 
-        if len(response_message) >= 1:
-            print('response geanerated, sending message')
-            await message.channel.send(response_message)
+            if start_of_message_sent and str(cur_response_message).endswith('.'):
+                await response_message_obj.edit(content=response_message)
 
-            chat_history += CHARACTER_NAME + ': ' + response_message + '\n'
+        if not start_of_message_sent:
+            response_message_obj = await message.channel.send(response_message)
+        else:
+            await response_message_obj.edit(content=response_message)
+
+        chat_history += CHARACTER_NAME + ': ' + response_message + '\n'
 
     except Exception as e:
         print(e)     
