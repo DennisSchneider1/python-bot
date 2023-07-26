@@ -8,14 +8,30 @@ async def send_message(message, user_message):
     try:
         global chat_history
         chat_history += str(message.author) + ': ' + user_message + '\n'
-        response = responses.get_response_for_user_input(str(message.author), chat_history)
-        if response != 'no response':
+
+        cur_len = 0
+        response_message = ''
+        response_message_chunk = ''
+        start_of_message_sent = False
+        async for new_history in responses.get_response_for_user_input(str(message.author), chat_history):
+            cur_response_message = new_history[cur_len:]
+            cur_len += len(cur_response_message)
+            response_message += cur_response_message
+            response_message_chunk += cur_response_message
+
+            # if not start_of_message_sent and (str(cur_response_message).endswith(['.','!']) or len(response_message_chunk) >= 100):
+            #     await message.channel.send(response_message_chunk)
+            #     response_message_chunk = ''
+            #     start_of_message_sent = True
+
+        if len(response_message) >= 1:
             print('response geanerated, sending message')
-            await message.channel.send(response)
-            chat_history += CHARACTER_NAME + ': ' + response + '\n'
+            await message.channel.send(response_message)
+
+            chat_history += CHARACTER_NAME + ': ' + response_message + '\n'
 
     except Exception as e:
-        print(e) 
+        print(e)     
 
 def run_discord_bot():
     # get API Token
