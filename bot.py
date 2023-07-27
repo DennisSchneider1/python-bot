@@ -8,7 +8,7 @@ CHARACTER_NAME = 'Shion'
 async def send_message(message, user_message):
     global processing_message
     if processing_message:
-        await message.channel.send('I\'m currently busy, sorry')
+        await message.channel.send('I\'m currently busy, I\'m sorry.')
         return
     else:
         processing_message = True
@@ -71,6 +71,8 @@ def run_discord_bot():
     @client.event
     async def on_message(message):
         if message.author == client.user:
+            return
+        if not client.user.mentioned_in(message) and not isinstance(message.channel, discord.DMChannel):
             return
         
         username = str(message.author)
