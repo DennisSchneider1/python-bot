@@ -1,4 +1,3 @@
-import asyncio
 import json
 
 try:
@@ -20,7 +19,7 @@ async def run(user_name:str, user_input:str, preset:str):
     request = {
         'user_input': user_input,
         'max_new_tokens': 500,
-        'mode': 'instruct',  # Valid options: 'chat', 'chat-instruct', 'instruct'
+        'mode': 'chat',  # Valid options: 'chat', 'chat-instruct', 'instruct'
         'character': CHARACTER_NAME,
         'instruction_template': 'Vicuna-v1.1',  # Will get autodetected if unset
         # 'context_instruct': '',  # Optional
@@ -79,3 +78,6 @@ async def run(user_name:str, user_input:str, preset:str):
 
 def llm_respond_creative_user(user_name:str, user_input:str) -> str:
     return run(user_name, user_input + CHARACTER_NAME + ': ', 'simple-1')
+
+def llm_respond_creative(user_input:str) -> str:
+    return run(CHARACTER_NAME, user_input, 'simple-1')

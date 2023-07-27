@@ -2,10 +2,19 @@ import discord
 import responses
 
 chat_history = '' # replace with dict
+processing_message = False
 CHARACTER_NAME = 'Shion'
 
 async def send_message(message, user_message):
+    global processing_message
+    if processing_message:
+        await message.channel.send('I\'m currently busy, sorry')
+        return
+    else:
+        processing_message = True
+
     try:
+        #only read and append to history
         global chat_history
         chat_history += str(message.author) + ': ' + user_message + '\n'
 
@@ -13,16 +22,15 @@ async def send_message(message, user_message):
         response_message = ''
         response_message_obj = None
         start_of_message_sent = False
-        async for new_history in responses.get_response_for_user_input(str(message.author), chat_history):
+        async for new_history in responses.get_response_stream(str(message.author), chat_history):
             cur_response_message = new_history[cur_len:]
             cur_len += len(cur_response_message)
             response_message += cur_response_message
 
-            if not start_of_message_sent and (str(cur_response_message).endswith('.')):
+            if not start_of_message_sent and str(cur_response_message).endswith('.') and len(response_message) > 100:
                 response_message_obj = await message.channel.send(response_message)
                 start_of_message_sent = True
-
-            if start_of_message_sent and str(cur_response_message).endswith('.'):
+            elif start_of_message_sent and str(cur_response_message).endswith('.'):
                 await response_message_obj.edit(content=response_message)
 
         if not start_of_message_sent:
@@ -30,10 +38,13 @@ async def send_message(message, user_message):
         else:
             await response_message_obj.edit(content=response_message)
 
+        # save full history
         chat_history += CHARACTER_NAME + ': ' + response_message + '\n'
 
     except Exception as e:
         print(e)     
+
+    processing_message = False
 
 def run_discord_bot():
     # get API Token
