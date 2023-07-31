@@ -1,4 +1,5 @@
 import json
+import asyncio
 
 try:
     import websockets
@@ -79,5 +80,5 @@ async def run(user_name:str, user_input:str, preset:str):
 def llm_respond_creative_user(user_name:str, user_input:str) -> str:
     return run(user_name, user_input + CHARACTER_NAME + ': ', 'simple-1')
 
-def llm_respond_creative(user_input:str) -> str:
-    return run(CHARACTER_NAME, user_input, 'simple-1')
+async def llm_respond_creative(user_input:str) -> str:
+    return run(CHARACTER_NAME, user_input + CHARACTER_NAME + ': ', 'simple-1')

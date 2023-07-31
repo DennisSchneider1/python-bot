@@ -1,11 +1,13 @@
 import discord
 import responses
+import memory
 
-chat_history = '' # replace with dict
+chat_history = memory.Memory()
 processing_message = False
 CHARACTER_NAME = 'Shion'
 
 async def send_message(message, user_message):
+    #mutex to only process one message and discard all others while processing
     global processing_message
     if processing_message:
         await message.channel.send('I\'m currently busy, I\'m sorry.')
@@ -14,33 +16,45 @@ async def send_message(message, user_message):
         processing_message = True
 
     try:
-        #only read and append to history
-        global chat_history
-        chat_history += str(message.author) + ': ' + user_message + '\n'
-
-        cur_len = 0
+        prompt = str(chat_history.get_memory()) + str(message.author) + ': ' + str(user_message) + '\n'
+        cur_len_response = 0
+        cur_len_discord_msg = 0
         response_message = ''
+        response_discord_msg = ''
         response_message_obj = None
         start_of_message_sent = False
-        async for new_history in responses.get_response_stream(str(message.author), chat_history):
-            cur_response_message = new_history[cur_len:]
-            cur_len += len(cur_response_message)
+        # stream response from llm
+        async for new_history in responses.get_response_stream(str(message.author), prompt):
+            cur_response_message = new_history[cur_len_response:]
+            cur_len_response += len(cur_response_message)
             response_message += cur_response_message
+            cur_len_discord_msg += len(cur_response_message)
+            response_discord_msg += cur_response_message
 
-            if not start_of_message_sent and str(cur_response_message).endswith('.') and len(response_message) > 100:
-                response_message_obj = await message.channel.send(response_message)
+            # send and update message im real time
+            if not start_of_message_sent and str(cur_response_message).endswith('.') and len(response_discord_msg) > 100:
+                response_message_obj = await message.channel.send(response_discord_msg)
+                cur_len_discord_msg = len(response_discord_msg)
                 start_of_message_sent = True
             elif start_of_message_sent and str(cur_response_message).endswith('.'):
-                await response_message_obj.edit(content=response_message)
+                if cur_len_discord_msg < 1900:
+                    await response_message_obj.edit(content=response_discord_msg)
+                    cur_len_discord_msg = len(response_discord_msg)
+                else:
+                    response_discord_msg = response_discord_msg[cur_len_discord_msg:]
+                    response_message_obj = await message.channel.send(response_discord_msg)
+                    cur_len_discord_msg = len(response_message)
 
-        if not start_of_message_sent:
-            response_message_obj = await message.channel.send(response_message)
+        #finish message response
+        if not start_of_message_sent or len(response_discord_msg) > 1900:
+            if len(response_discord_msg) < 1:
+                response_discord_msg = ':heart:'
+            await message.channel.send(response_discord_msg)
         else:
-            await response_message_obj.edit(content=response_message)
+            await response_message_obj.edit(content=response_discord_msg)
 
         # save full history
-        chat_history += CHARACTER_NAME + ': ' + response_message + '\n'
-
+        chat_history.add_memory(str(message.author) + ': ' + str(user_message), str(CHARACTER_NAME) + ': ' + str(response_message))
     except Exception as e:
         print(e)     
 
@@ -63,23 +77,29 @@ def run_discord_bot():
 
         # set bot status with llm
         generate_status_prompt = 'I\'m Shion. I\'ve been thinking of a funny discord status and I think i\'ll set it to: '
-        status_message = responses.get_response(generate_status_prompt)
+        response = responses.get_response(generate_status_prompt)
+        print(response)
+        status_message = response.split('"')[1]
         game_status = discord.Game(status_message)
         await client.change_presence(status=discord.Status.idle, activity=game_status)
         print('bot status is set')
 
     @client.event
     async def on_message(message):
+        #filter and prepare messages
         if message.author == client.user:
             return
         if not client.user.mentioned_in(message) and not isinstance(message.channel, discord.DMChannel):
             return
-        
+        if client.user.mentioned_in(message):
+            user_message = CHARACTER_NAME + str(message.content).split('>', 1)[1]
+        else:
+            user_message = str(message.content)
         username = str(message.author)
-        user_message = str(message.content)
         channel = str(message.channel)
         print(f'{username} said: "{user_message}" in ({channel})')
 
+        #respond to message
         async with message.channel.typing():
             await send_message(message, user_message)
 
