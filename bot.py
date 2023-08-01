@@ -24,7 +24,7 @@ async def send_message(message, user_message):
         response_message_obj = None
         start_of_message_sent = False
         # stream response from llm
-        async for new_history in responses.get_response_stream(str(message.author), prompt):
+        async for new_history in responses.get_response_stream(CHARACTER_NAME, str(message.author), prompt):
             cur_response_message = new_history[cur_len_response:]
             cur_len_response += len(cur_response_message)
             response_message += cur_response_message
@@ -56,7 +56,7 @@ async def send_message(message, user_message):
         # save full history
         chat_history.add_memory(str(message.author) + ': ' + str(user_message), str(CHARACTER_NAME) + ': ' + str(response_message))
     except Exception as e:
-        print(e)     
+        print(e)
 
     processing_message = False
 
@@ -77,7 +77,7 @@ def run_discord_bot():
 
         # set bot status with llm
         generate_status_prompt = 'I\'m Shion. I\'ve been thinking of a funny discord status and I think i\'ll set it to: '
-        response = responses.get_response(generate_status_prompt)
+        response = responses.get_response(CHARACTER_NAME, generate_status_prompt)
         print(response)
         status_message = response.split('"')[1]
         game_status = discord.Game(status_message)

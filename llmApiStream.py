@@ -9,19 +9,18 @@ except ImportError:
 # For local streaming, the websockets are hosted without ssl - ws://
 HOST = 'localhost:5005'
 URI = f'ws://{HOST}/api/v1/chat-stream'
-CHARACTER_NAME = 'Shion'
 
 # For reverse-proxied streaming, the remote will likely host with ssl - wss://
 # URI = 'wss://your-uri-here.trycloudflare.com/api/v1/stream'
 
 
-async def run(user_name:str, user_input:str, preset:str):
+async def run(character_name:str, user_name:str, user_input:str, preset:str):
     # Note: the selected defaults change from time to time.
     request = {
         'user_input': user_input,
         'max_new_tokens': 500,
         'mode': 'chat',  # Valid options: 'chat', 'chat-instruct', 'instruct'
-        'character': CHARACTER_NAME,
+        'character': character_name,
         'instruction_template': 'Vicuna-v1.1',  # Will get autodetected if unset
         # 'context_instruct': '',  # Optional
         'your_name': user_name,
@@ -77,8 +76,8 @@ async def run(user_name:str, user_input:str, preset:str):
                 case 'stream_end':
                     return
 
-def llm_respond_creative_user(user_name:str, user_input:str) -> str:
-    return run(user_name, user_input + CHARACTER_NAME + ': ', 'simple-1')
+def llm_respond_creative_user(character_name:str, user_name:str, user_input:str) -> str:
+    return run(character_name, user_name, user_input + character_name + ': ', 'simple-1')
 
-async def llm_respond_creative(user_input:str) -> str:
-    return run(CHARACTER_NAME, user_input + CHARACTER_NAME + ': ', 'simple-1')
+def llm_respond_creative(character_name:str, user_input:str) -> str:
+    return run(character_name, user_input + character_name + ': ', 'simple-1')

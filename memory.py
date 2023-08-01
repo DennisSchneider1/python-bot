@@ -1,6 +1,5 @@
 import llmApi
 
-CHARACTER_NAME = 'Shion'
 HISTORY_BUFFER_LENGTH = 2500
 SUMMARY_BUFFER_LENGTH = 1000
 SUMMARIZE_PROMPT_INIT = 'This has been the conversation so far. The discussed topics are the following: '
