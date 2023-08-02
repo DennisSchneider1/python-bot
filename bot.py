@@ -2,9 +2,9 @@ import discord
 import responses
 import memory
 
-chat_history = memory.Memory()
-processing_message = False
 CHARACTER_NAME = 'Shion'
+chat_history = memory.Memory(CHARACTER_NAME)
+processing_message = False
 
 async def send_message(message, user_message):
     #mutex to only process one message and discard all others while processing

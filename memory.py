@@ -2,11 +2,13 @@ import llmApi
 
 HISTORY_BUFFER_LENGTH = 2500
 SUMMARY_BUFFER_LENGTH = 1500
-SUMMARIZE_PROMPT_INIT = 'USER: Please provide me with a summary of the current conversation we had. Make sure not to miss any important details.\nASSISTANT: '
+SUMMARIZE_PROMPT_INIT = '''USER: Please provide me with a summary of the current conversation we had. 
+    Make sure to keep track of who said what and to not miss any important details.\n'''
 # HISTORY_PROMPT_INIT = '\n### START OF CONVERSATION: \n'
 
 class Memory:
-    def __init__(self):
+    def __init__(self, character_name):
+        self.character_name = character_name
         self.history = [] #init history from file here
         self.summarized_history = ''
         self.status = ''
@@ -16,7 +18,7 @@ class Memory:
 
     def summarize_summary(self):
         # request reponse from llm
-        response_message = llmApi.llm_respond_creative('Shion', self.summarized_history + SUMMARIZE_PROMPT_INIT)
+        response_message = llmApi.llm_respond_creative(self.character_name, self.summarized_history + SUMMARIZE_PROMPT_INIT + self.character_name + ': ')
         self.summarized_history = response_message
         print(f'Summarized. Current summary is: {self.summarized_history}')
 
